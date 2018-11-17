@@ -1,7 +1,8 @@
-package com.davipviana.chat
+package com.davipviana.chat.activity
 
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import com.davipviana.chat.R
 
 class MainActivity : AppCompatActivity() {
 
