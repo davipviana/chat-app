@@ -1,5 +1,9 @@
 package com.davipviana.chat.model
 
-class Message(val clientId: Int, val text: String) {
+import com.google.gson.annotations.SerializedName
 
-}
+class Message(
+    @SerializedName("id")
+    val clientId: Int,
+    val text: String
+)
