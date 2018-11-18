@@ -7,8 +7,12 @@ import android.widget.Button
 import android.widget.EditText
 import com.davipviana.chat.R
 import com.davipviana.chat.adapter.MessageAdapter
+import com.davipviana.chat.callback.ListenMessagesCallback
+import com.davipviana.chat.callback.SendMessageCallback
 import com.davipviana.chat.model.Message
 import com.davipviana.chat.service.ChatService
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
 class MainActivity : AppCompatActivity() {
 
@@ -36,17 +40,30 @@ class MainActivity : AppCompatActivity() {
 
         messageEditText = findViewById(R.id.main_text_message)
 
-        chatService = ChatService(this)
-        chatService.listenMessages()
+        val retrofit = Retrofit.Builder()
+                        .baseUrl("http://192.168.0.106:8080/")
+                        .addConverterFactory(GsonConverterFactory.create())
+                        .build()
+
+        chatService = retrofit.create(ChatService::class.java)
+        listenMessages()
 
         sendButton = findViewById(R.id.main_send_button)
         sendButton.setOnClickListener{
-            chatService.sendMessage(Message(clientId, messageEditText.text.toString()))
+            chatService
+                .sendMessage(Message(clientId, messageEditText.text.toString()))
+                .enqueue(SendMessageCallback())
+
         }
     }
 
     fun addMessageToRecyclerView(message: Message) {
         messageAdapter.add(message)
-        chatService.listenMessages()
+
+        listenMessages()
+    }
+
+    fun listenMessages() {
+        chatService.listenMessages().enqueue(ListenMessagesCallback(this))
     }
 }
