@@ -17,9 +17,12 @@ import com.davipviana.chat.adapter.MessageAdapter
 import com.davipviana.chat.callback.ListenMessagesCallback
 import com.davipviana.chat.callback.SendMessageCallback
 import com.davipviana.chat.component.ChatComponent
+import com.davipviana.chat.event.MessageEvent
 import com.davipviana.chat.model.Message
 import com.davipviana.chat.service.ChatService
 import com.squareup.picasso.Picasso
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
 import javax.inject.Inject
 
 class MainActivity : AppCompatActivity() {
@@ -34,14 +37,6 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var chatService: ChatService
 
-    private val newMessageReceiver: BroadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            val message = intent?.getSerializableExtra("message") as Message
-
-            addMessageToRecyclerView(message)
-        }
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -51,17 +46,15 @@ class MainActivity : AppCompatActivity() {
 
         initializeWidgets()
 
-        listenMessages()
+        chatService.listenMessages().enqueue(ListenMessagesCallback(this))
 
-        val localBroadcastManager = LocalBroadcastManager.getInstance(this)
-        localBroadcastManager.registerReceiver(newMessageReceiver, IntentFilter("new_message"))
+        EventBus.getDefault().register(this)
     }
 
     override fun onStop() {
         super.onStop()
 
-        val localBroadcastManager = LocalBroadcastManager.getInstance(this)
-        localBroadcastManager.unregisterReceiver(newMessageReceiver)
+        EventBus.getDefault().unregister(this)
     }
 
     private fun initializeWidgets() {
@@ -99,13 +92,13 @@ class MainActivity : AppCompatActivity() {
             .into(userAvatarImageView)
     }
 
-    fun addMessageToRecyclerView(message: Message) {
-        messageAdapter.add(message)
-
-        listenMessages()
+    @Subscribe
+    fun addMessageToRecyclerView(messageEvent: MessageEvent) {
+        messageAdapter.add(messageEvent.message)
     }
 
-    fun listenMessages() {
+    @Subscribe
+    fun listenMessages(messageEvent: MessageEvent) {
         chatService.listenMessages().enqueue(ListenMessagesCallback(this))
     }
 }
