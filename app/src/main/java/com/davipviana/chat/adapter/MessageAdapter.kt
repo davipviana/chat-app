@@ -14,7 +14,7 @@ import com.squareup.picasso.Picasso
 
 class MessageAdapter(
     private val context: Context,
-    private val messages: ArrayList<Message>,
+    val messages: ArrayList<Message>,
     private val clientId: Int
 ) : RecyclerView.Adapter<MessageAdapter.MessageViewHolder>() {
 

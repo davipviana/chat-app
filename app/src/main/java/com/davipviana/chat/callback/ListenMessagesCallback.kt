@@ -10,7 +10,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class ListenMessagesCallback(val context: Context) : Callback<Message> {
+class ListenMessagesCallback(val context: Context, val eventBus: EventBus) : Callback<Message> {
     override fun onFailure(call: Call<Message>, t: Throwable) {
     }
 
@@ -18,7 +18,7 @@ class ListenMessagesCallback(val context: Context) : Callback<Message> {
         if(response.isSuccessful) {
             val message = response.body() as Message
 
-            EventBus.getDefault().post(MessageEvent(message))
+            eventBus.post(MessageEvent(message))
         }
     }
 }

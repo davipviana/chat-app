@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
+import android.os.PersistableBundle
 import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.RecyclerView
@@ -37,6 +38,9 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var chatService: ChatService
 
+    @Inject
+    lateinit var eventBus: EventBus
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -44,29 +48,39 @@ class MainActivity : AppCompatActivity() {
         chatComponent = (application as ChatApplication).chatComponent
         chatComponent.inject(this)
 
-        initializeWidgets()
+        var messages = ArrayList<Message>()
+        if(savedInstanceState != null){
+            messages = savedInstanceState.getSerializable("messages") as ArrayList<Message>
+        }
+        initializeWidgets(messages)
 
-        chatService.listenMessages().enqueue(ListenMessagesCallback(this))
+        chatService.listenMessages().enqueue(ListenMessagesCallback(this, eventBus))
 
-        EventBus.getDefault().register(this)
+        eventBus.register(this)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle?) {
+        super.onSaveInstanceState(outState)
+
+        outState?.putSerializable("messages", messageAdapter.messages)
     }
 
     override fun onStop() {
         super.onStop()
 
-        EventBus.getDefault().unregister(this)
+        eventBus.unregister(this)
     }
 
-    private fun initializeWidgets() {
-        initializeMessagesRecyclerView()
+    private fun initializeWidgets(messages: ArrayList<Message>) {
+        initializeMessagesRecyclerView(messages)
         initializeMessageEditText()
         initializeSendButton()
         initializeUserAvatarImageView()
     }
 
-    private fun initializeMessagesRecyclerView() {
+    private fun initializeMessagesRecyclerView(messages: ArrayList<Message>) {
         val messagesRecyclerView = findViewById<RecyclerView>(R.id.main_recycler_view)
-        val messages = ArrayList<Message>()
+
         messageAdapter = MessageAdapter(this, messages, clientId)
         messagesRecyclerView.adapter = messageAdapter
     }
@@ -99,6 +113,6 @@ class MainActivity : AppCompatActivity() {
 
     @Subscribe
     fun listenMessages(messageEvent: MessageEvent) {
-        chatService.listenMessages().enqueue(ListenMessagesCallback(this))
+        chatService.listenMessages().enqueue(ListenMessagesCallback(this, eventBus))
     }
 }

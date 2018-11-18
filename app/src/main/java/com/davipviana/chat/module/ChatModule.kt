@@ -1,8 +1,10 @@
 package com.davipviana.chat.module
 
+import android.util.EventLog
 import com.davipviana.chat.service.ChatService
 import dagger.Module
 import dagger.Provides
+import org.greenrobot.eventbus.EventBus
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
@@ -18,4 +20,7 @@ class ChatModule {
 
         return retrofit.create(ChatService::class.java)
     }
+
+    @Provides
+    fun getEventBus(): EventBus = EventBus.builder().build()
 }
