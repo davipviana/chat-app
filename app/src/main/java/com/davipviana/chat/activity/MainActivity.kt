@@ -1,6 +1,11 @@
 package com.davipviana.chat.activity
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
+import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.RecyclerView
 import android.widget.Button
@@ -29,6 +34,14 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var chatService: ChatService
 
+    private val newMessageReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val message = intent?.getSerializableExtra("message") as Message
+
+            addMessageToRecyclerView(message)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -39,6 +52,16 @@ class MainActivity : AppCompatActivity() {
         initializeWidgets()
 
         listenMessages()
+
+        val localBroadcastManager = LocalBroadcastManager.getInstance(this)
+        localBroadcastManager.registerReceiver(newMessageReceiver, IntentFilter("new_message"))
+    }
+
+    override fun onStop() {
+        super.onStop()
+
+        val localBroadcastManager = LocalBroadcastManager.getInstance(this)
+        localBroadcastManager.unregisterReceiver(newMessageReceiver)
     }
 
     private fun initializeWidgets() {
