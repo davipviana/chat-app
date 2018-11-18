@@ -18,24 +18,35 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var sendButton: Button
 
+    private lateinit var messageAdapter: MessageAdapter
+
+    private lateinit var chatService: ChatService
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         val messagesRecyclerView = findViewById<RecyclerView>(R.id.main_recycler_view)
 
-        val messages = arrayListOf(Message(1, "olá alunos de android"), Message(2, "Oi"))
+        val messages = ArrayList<Message>()
 
-        val messageAdapter = MessageAdapter(this, messages, clientId)
+        messageAdapter = MessageAdapter(this, messages, clientId)
 
         messagesRecyclerView.adapter = messageAdapter
 
-        messageEditText = findViewById<EditText>(R.id.main_text_message)
+        messageEditText = findViewById(R.id.main_text_message)
 
-        sendButton = findViewById<Button>(R.id.main_send_button)
+        chatService = ChatService(this)
+        chatService.listenMessages()
 
+        sendButton = findViewById(R.id.main_send_button)
         sendButton.setOnClickListener{
-            ChatService().sendMessage(Message(clientId, messageEditText.text.toString()))
+            chatService.sendMessage(Message(clientId, messageEditText.text.toString()))
         }
+    }
+
+    fun addMessageToRecyclerView(message: Message) {
+        messageAdapter.add(message)
+        chatService.listenMessages()
     }
 }
