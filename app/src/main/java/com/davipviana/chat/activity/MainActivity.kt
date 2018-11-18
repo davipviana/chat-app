@@ -9,6 +9,7 @@ import android.os.PersistableBundle
 import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.RecyclerView
+import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
@@ -95,6 +96,10 @@ class MainActivity : AppCompatActivity() {
             chatService
                 .sendMessage(Message(clientId, messageEditText.text.toString()))
                 .enqueue(SendMessageCallback())
+
+            messageEditText.text.clear()
+            val inputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            inputMethodManager.hideSoftInputFromWindow(messageEditText.windowToken, 0)
         }
     }
 
